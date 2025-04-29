@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const categoryController = require("../controllers/category.controller");
-const { upload, validateAddCategoryData, validateEditCategoryData, uploadToFirebase } = require("../middlewares/category.middleware");
+const { upload, validateAddCategoryData, validateEditCategoryData, uploadToFirebase } = require("../firbaseimagestorge/category.storge");
 
 router.post("/add",
   upload.single('image'),
