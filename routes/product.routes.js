@@ -75,8 +75,6 @@ router.get(
   productController.getProductsByCategory
 );
 
-
-
 // autocomplete search products
 router.get('/autocomplete', productController.autocomplete);
 
@@ -85,3 +83,4 @@ router.get('/autocomplete', productController.autocomplete);
 router.get("/featured/products", productController.getFeaturedProducts);
 
 module.exports = router;
+
