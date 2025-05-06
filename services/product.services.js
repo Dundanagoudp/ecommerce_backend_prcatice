@@ -200,6 +200,81 @@ async updateProduct(id, updateData) {
     );
   }
 
+  // Add to product.service.js
+async searchProducts({
+  q = '',
+  category = [],
+  minPrice,
+  maxPrice,
+  inStock,
+  page = 1,
+  limit = 10,
+  sortBy = 'relevance',
+  sortOrder = 'desc'
+}) {
+  const query = { isDeleted: false };
+
+  // Text search
+  if (q) {
+    query.$text = { $search: q };
+  }
+
+  // Category filter
+  if (category && category.length > 0) {
+    query.categories = { $in: category };
+  }
+
+  // Price range filter
+  if (minPrice !== undefined || maxPrice !== undefined) {
+    query.price = {};
+    if (minPrice !== undefined) query.price.$gte = Number(minPrice);
+    if (maxPrice !== undefined) query.price.$lte = Number(maxPrice);
+  }
+
+  // Stock status filter
+  if (inStock !== undefined) {
+    query.stock_status = inStock ? 'in_stock' : { $in: ['out_of_stock', 'on_backorder'] };
+  }
+
+  // Sorting options
+  const sortOptions = {};
+  if (sortBy === 'relevance' && q) {
+    sortOptions.score = { $meta: 'textScore' };
+  } else {
+    sortOptions[sortBy] = sortOrder === 'desc' ? -1 : 1;
+  }
+
+  const options = {
+    page: parseInt(page),
+    limit: parseInt(limit),
+    sort: sortOptions,
+    populate: ['categories', 'sub_categories'],
+    select: q ? { score: { $meta: 'textScore' } } : undefined
+  };
+
+  return await Product.paginate(query, options);
+}
+
+// auto search products
+async autocomplete(query, limit = 5) {
+  const results = await Product.aggregate([
+    {
+      $search: {
+        index: 'product_search_index',
+        autocomplete: {
+          query: query,
+          path: 'name',
+          tokenOrder: 'sequential'
+        }
+      }
+    },
+    { $limit: limit },
+    { $project: { _id: 1, name: 1 } }
+  ]);
+  return results;
+}
+
+
   // Get featured products
   async getFeaturedProducts({ page = 1, limit = 10 }) {
     const options = {
@@ -215,5 +290,7 @@ async updateProduct(id, updateData) {
     );
   }
 }
+
+
 
 module.exports = new ProductService();

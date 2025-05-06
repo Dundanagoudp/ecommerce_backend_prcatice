@@ -17,6 +17,13 @@ router.post(
 // Get all products
 router.get("/getallproducts", productController.getAllProducts);
 
+// Search products
+router.get(
+  '/search',
+  productValidator.validateSearchQuery,
+  productController.searchProducts
+);
+
 // Get product by ID
 router.get(
   "/:id",
@@ -54,6 +61,12 @@ router.get(
   productValidator.validateCategoryId,
   productController.getProductsByCategory
 );
+
+
+
+// autocomplete search products
+router.get('/autocomplete', productController.autocomplete);
+
 
 // Get featured products
 router.get("/featured/products", productController.getFeaturedProducts);

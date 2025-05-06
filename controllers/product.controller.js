@@ -1,5 +1,6 @@
 const productService = require("../services/product.services");
 const { uploadToFirebase } = require("../firbaseimagestorge/products.storge");
+const productServices = require("../services/product.services");
 
 exports.createProduct = async (req, res) => {
   try {
@@ -193,6 +194,72 @@ exports.getProductsByCategory = async (req, res) => {
     res.status(500).json({ error: "Internal server error" });
   }
 };
+
+// get search products
+// Add to product.controller.js
+exports.searchProducts = async (req, res) => {
+  try {
+    const {
+      q = '',
+      category = [],
+      minPrice,
+      maxPrice,
+      inStock,
+      page = 1,
+      limit = 10,
+      sortBy = 'relevance',
+      sortOrder = 'desc'
+    } = req.query;
+
+    const results = await productServices.searchProducts({
+      q,
+      category,
+      minPrice,
+      maxPrice,
+      inStock: inStock === 'true',
+      page,
+      limit,
+      sortBy,
+      sortOrder
+    });
+
+    res.status(200).json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error("Error searching products:", error);
+    res.status(500).json({
+      success: false,
+      error: error.message || "Failed to search products"
+    });
+  }
+};
+
+//auto complete search
+exports.autocomplete = async (req, res) => {
+  try {
+    const { q, limit = 5 } = req.query;
+    if (!q || q.length < 2) {
+      return res.status(200).json({
+        success: true,
+        data: []
+      });
+    }
+    const results = await productService.autocomplete(q, limit);
+    res.status(200).json({
+      success: true,
+      data: results
+    });
+  } catch (error) {
+    console.error("Error in autocomplete:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to perform autocomplete"
+    });
+  }
+};
+
 
 exports.getFeaturedProducts = async (req, res) => {
   try {

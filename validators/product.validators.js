@@ -179,6 +179,57 @@ exports.parseArrayFields = (req, res, next) => {
   next();
 };
 
+// Add to product.validators.js
+exports.validateSearchQuery = [
+  query('q')  // Note: using query() not param()
+  .optional()
+  .trim()
+  .isLength({ min: 2 }).withMessage('Search query must be at least 2 characters'),
+  query('category')
+    .optional()
+    .customSanitizer(value => {
+      if (Array.isArray(value)) return value;
+      if (typeof value === 'string') return value.split(',');
+      return [];
+    })
+    .custom(value => {
+      if (!Array.isArray(value)) return true;
+      return value.every(id => mongoose.Types.ObjectId.isValid(id));
+    }).withMessage('Invalid category ID format'),
+  query('minPrice')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('Minimum price must be a positive number'),
+  query('maxPrice')
+    .optional()
+    .isFloat({ min: 0 }).withMessage('Maximum price must be a positive number'),
+  query('inStock')
+    .optional()
+    .isBoolean().withMessage('inStock must be a boolean'),
+  query('page')
+    .optional()
+    .isInt({ min: 1 }).withMessage('Page must be a positive integer'),
+  query('limit')
+    .optional()
+    .isInt({ min: 1, max: 100 }).withMessage('Limit must be between 1 and 100'),
+  query('sortBy')
+    .optional()
+    .isIn(['relevance', 'price', 'name', 'createdAt', 'updatedAt']).withMessage('Invalid sort field'),
+  query('sortOrder')
+    .optional()
+    .isIn(['asc', 'desc']).withMessage('Invalid sort order'),
+  
+  (req, res, next) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ 
+        success: false,
+        errors: errors.array() 
+      });
+    }
+    next();
+  }
+];
+
 // Middleware to set default values
 exports.setProductDefaults = (req, res, next) => {
   if (req.method === 'POST') {
