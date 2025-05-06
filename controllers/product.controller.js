@@ -260,6 +260,52 @@ exports.autocomplete = async (req, res) => {
   }
 };
 
+// facets search
+exports.getSearchFacets = async (req, res) => {
+  try {
+    const facets = await productService.getSearchFacets();
+    
+    res.status(200).json({
+      success: true,
+      data: facets
+    });
+  } catch (error) {
+    console.error("Error getting search facets:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get search facets"
+    });
+  }
+};
+
+// Get filtered search facets
+exports.getFilteredSearchFacets = async (req, res) => {
+  try {
+    const { q, category, minPrice, maxPrice } = req.query;
+    const facets = await productService.getFilteredSearchFacets({
+      q,
+      category,
+      minPrice,
+      maxPrice
+      
+    });
+    
+    res.status(200).json({
+      success: true,
+      data: facets
+    });
+  } catch (error) {
+    console.error("Error getting filtered facets:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to get filtered facets"
+    });
+  }
+};
+
+
+
+
 
 exports.getFeaturedProducts = async (req, res) => {
   try {

@@ -24,6 +24,19 @@ router.get(
   productController.searchProducts
 );
 
+// facests search products
+router.get(
+  '/search/facets',
+  productController.getSearchFacets
+);
+
+// filter facest search products
+router.get(
+  '/search/facets/filtered',
+  productValidator.validateSearchQuery, 
+  productController.getFilteredSearchFacets
+);
+
 // Get product by ID
 router.get(
   "/:id",

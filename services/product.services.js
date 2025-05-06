@@ -274,6 +274,136 @@ async autocomplete(query, limit = 5) {
   return results;
 }
 
+// facets search
+async getSearchFacets() {
+  const facets = await Product.aggregate([
+    {
+      $match: {
+        isDeleted: false,
+        is_active: true
+      }
+    },
+    {
+      $facet: {
+        categories: [
+          { $unwind: "$categories" },
+          { $group: { _id: "$categories", count: { $sum: 1 } } },
+          { $lookup: {
+            from: "categories",
+            localField: "_id",
+            foreignField: "_id",
+            as: "category"
+          }},
+          { $unwind: "$category" },
+          { $match: { "category.isDeleted": false } },
+          { $project: { 
+            _id: 1, 
+            name: "$category.name",
+            slug: "$category.slug",
+            count: 1 
+          }},
+          { $sort: { count: -1 } }
+        ],
+        subCategories: [
+          { $unwind: "$sub_categories" },
+          { $group: { _id: "$sub_categories", count: { $sum: 1 } } },
+          { $lookup: {
+            from: "subcategories",
+            localField: "_id",
+            foreignField: "_id",
+            as: "subCategory"
+          }},
+          { $unwind: "$subCategory" },
+          { $match: { "subCategory.isDeleted": false } },
+          { $project: { 
+            _id: 1, 
+            name: "$subCategory.name",
+            slug: "$subCategory.slug",
+            count: 1 
+          }},
+          { $sort: { count: -1 } }
+        ],
+        priceRange: [
+          { 
+            $bucket: {
+              groupBy: "$price",
+              boundaries: [0, 100, 200, 500, 1000, 2000, 5000],
+              default: "Other",
+              output: {
+                count: { $sum: 1 },
+                minPrice: { $min: "$price" },
+                maxPrice: { $max: "$price" }
+              }
+            }
+          }
+        ],
+        brands: [
+          { $unwind: "$attributes" },
+          { $match: { "attributes.name": "Brand" } },
+          { $group: { 
+            _id: "$attributes.value",
+            count: { $sum: 1 }
+          }},
+          { $project: {
+            name: "$_id",
+            count: 1,
+            _id: 0
+          }},
+          { $sort: { count: -1 } }
+        ],
+        stockStatus: [
+          { $group: {
+            _id: "$stock_status",
+            count: { $sum: 1 }
+          }},
+          { $project: {
+            status: "$_id",
+            count: 1,
+            _id: 0
+          }}
+        ],
+        featured: [
+          { $group: {
+            _id: "$is_featured",
+            count: { $sum: 1 }
+          }},
+          { $project: {
+            isFeatured: "$_id",
+            count: 1,
+            _id: 0
+          }}
+        ]
+      }
+    }
+  ]);
+  
+  return facets[0];
+}
+
+// Filtered Facets
+async getFilteredSearchFacets(filterCriteria) {
+  const matchStage = {
+    isDeleted: false,
+    is_active: true
+  };
+
+  // Apply filters if provided
+  if (filterCriteria.q) {
+    matchStage.$text = { $search: filterCriteria.q };
+  }
+  if (filterCriteria.category) {
+    matchStage.categories = filterCriteria.category;
+  }
+  // Add other filters as needed...
+
+  const facets = await Product.aggregate([
+    { $match: matchStage },
+    // Rest of the facet pipeline...
+  ]);
+  
+  return facets[0];
+}
+
 
   // Get featured products
   async getFeaturedProducts({ page = 1, limit = 10 }) {
@@ -290,6 +420,8 @@ async autocomplete(query, limit = 5) {
     );
   }
 }
+
+
 
 
 
