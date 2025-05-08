@@ -46,7 +46,7 @@ router.get(
 
 // Update product
 router.put(
-  "/:id",
+  "/edit/:id",
   upload.array("images", 5),
   productValidator.parseArrayFields,
   productValidator.validateProductId,
