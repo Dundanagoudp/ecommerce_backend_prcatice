@@ -6,6 +6,7 @@ const userRoutes = require("./routes/user.routes");
 const categoryRoutes = require("./routes/category.routes");
 const productRoutes = require("./routes/product.routes");
 const cartRoutes = require("./routes/cart.routes");
+const checkoutRoutes = require("./routes/checkout.routes");
 const app = express();
 const cors = require("cors");
 const helmet = require("helmet");
@@ -44,6 +45,7 @@ app.use("/user", userRoutes);
 app.use("/category", categoryRoutes);
 app.use("/products", productRoutes);
 app.use("/cart", cartRoutes);
+app.use("/checkout", checkoutRoutes);
 
 // Health check
 app.get("/", (req, res) => {
