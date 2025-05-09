@@ -1,14 +1,14 @@
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const CartController = require('../controllers/cart.controller');
-const authMiddleware = require('../middlewares/auth.middleware');
+const cartController = require("../controllers/cart.controller");
 
-// Protected routes (require auth)
-router.use(authMiddleware);
-
-router.post('/add', CartController.addToCart);
-router.get('/', CartController.getCart);
-router.delete('/:productId', CartController.removeFromCart);
-router.delete('/', CartController.clearCart);
+// Cart routes
+router.get("/", cartController.getCart);
+router.post("/items", cartController.addItem);
+router.put("/items/:itemId", cartController.updateItem);
+router.delete("/items/:itemId", cartController.removeItem);
+router.delete("/", cartController.clearCart);
+router.post("/coupon", cartController.applyCoupon);
+router.put("/shipping", cartController.updateShipping);
 
 module.exports = router;

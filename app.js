@@ -5,6 +5,7 @@ const connectDB = require("./config/db");
 const userRoutes = require("./routes/user.routes");
 const categoryRoutes = require("./routes/category.routes");
 const productRoutes = require("./routes/product.routes");
+const cartRoutes = require("./routes/cart.routes");
 const app = express();
 const cors = require("cors");
 const helmet = require("helmet");
@@ -42,7 +43,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use("/user", userRoutes);
 app.use("/category", categoryRoutes);
 app.use("/products", productRoutes);
-// app.use("/cart", authMiddleware, cartRoutes); 
+app.use("/cart", cartRoutes);
 
 // Health check
 app.get("/", (req, res) => {
