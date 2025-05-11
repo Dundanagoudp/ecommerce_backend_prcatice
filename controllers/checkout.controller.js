@@ -1,32 +1,39 @@
 const CheckoutService = require('../services/checkout.services');
-const { checkoutValidator, paymentValidator } = require('../validators/checkout.validator');
+const { checkoutSchema, paymentSchema } = require('../validators/checkout.validator');
 
 class CheckoutController {
   static async startCheckout(req, res) {
     try {
-      const { error } = checkoutValidator.body.validate(req.body);
-      if (error) throw error;
-
+      // Zod validation
+      const validatedData = checkoutSchema.parse(req.body);
+      
       const checkout = await CheckoutService.initiateCheckout(
         req.user._id,
         req.user.cart, 
-        req.body
+        validatedData 
       );
 
       res.status(201).json(checkout);
     } catch (error) {
+      // Zod error formatting
+      if (error.errors) {
+        return res.status(400).json({ 
+          error: 'Validation failed',
+          details: error.errors 
+        });
+      }
       res.status(400).json({ error: error.message });
     }
   }
 
   static async handlePayment(req, res) {
     try {
-      const { error } = paymentValidator.body.validate(req.body);
-      if (error) throw error;
-
+      // Zod validation
+      const validatedData = paymentSchema.parse(req.body);
+      
       const result = await CheckoutService.processPayment(
         req.params.checkoutId,
-        req.body
+        validatedData
       );
 
       if (!result.success) {
@@ -35,6 +42,12 @@ class CheckoutController {
 
       res.json(result.checkout);
     } catch (error) {
+      if (error.errors) {
+        return res.status(400).json({ 
+          error: 'Payment validation failed',
+          details: error.errors 
+        });
+      }
       res.status(400).json({ error: error.message });
     }
   }

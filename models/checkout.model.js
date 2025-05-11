@@ -20,7 +20,7 @@ const checkoutSchema = new mongoose.Schema({
   },
   paymentMethod: { 
     type: String, 
-    enum: ['credit_card', 'paypal', 'stripe'], 
+    enum: ['credit_card', 'paypal', 'razorpay', 'cod'], 
     required: true 
   },
   paymentStatus: { 

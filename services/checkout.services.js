@@ -5,7 +5,9 @@ class CheckoutService {
   static async initiateCheckout(userId, cartId, checkoutData) {
     // 1. Validate cart exists
     const cart = await Cart.findById(cartId).populate('items.product');
+    
     if (!cart) throw new Error('Cart not found');
+    
 
     // 2. Freeze cart (prevent modifications)
     cart.isFrozen = true;

@@ -8,17 +8,20 @@ const {
 } = require("../validators/cart.validations");
 
 class CartService {
-  async getCart(userId) {
+   async getCart(userId) {
     let cart = await Cart.findOne({ user: userId })
       .populate("items.product", "name price sale_price images stock_status");
     
     if (!cart) {
-      cart = new Cart({ user: userId });
-      await cart.save();
+      // Auto-create cart if missing
+      cart = await Cart.create({ user: userId });
+      // Update user reference
+      await mongoose.model('User').findByIdAndUpdate(userId, { cart: cart._id });
     }
     
     return cart;
   }
+
 
   async addItem(userId, itemData) {
     const validation = validateCartItem(itemData);
